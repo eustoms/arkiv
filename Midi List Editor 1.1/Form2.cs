@@ -134,91 +134,7 @@ namespace Midi_List_Editor_1._1
                     int channel = comboBoxCh.SelectedIndex;
                     int evT = comboBoxEvT.SelectedIndex;
                     vect.Add(lst[track][eNb][0]);
-                    switch (evT)
-                    {
-                        case 0:
-                            // Program Change
-                            vect.Add(192 + channel);
-                            str = textBoxD1.Text;
-                            result = Int32.TryParse(str, out number);
-                            if (result)
-                            {
-                                vect.Add(number-1);
-                            }
-                            /*str = textBoxD2.Text;
-                            result = Int32.TryParse(str, out number);
-                            if (result)
-                            {
-                                vect.Add(number);
-                            }
-                             */
-                            vect.Add(0);
-                            lst[track].Insert(eNb, vect);
-                            str = "";
-
-                            break;
-                        case 1:
-                            // Track Name
-                            labelTrName.Visible = true;
-                            textTrName.Visible = true;
-                            buttonTrN.Visible = true;
-                            break;
-                        case 2:
-                            // Master Volume
-                            List<byte> sysVect = new List<byte>();
-                            List<int> vtt = new List<int>();
-                            int sDCnt = sysD.Count;
-                            vtt.Add(0);
-                            vtt.Add(240);
-                            vtt.Add(7);
-                            vtt.Add(sDCnt);
-                            str = textBoxD1.Text;
-                            int vol = 0;
-                            result = Int32.TryParse(str, out number);
-                            if (result) 
-                            {
-                                vol = number; 
-                            }
-                            sysVect.Add(7);
-                            sysVect.Add(127); // Hex 7F
-                            sysVect.Add(127);
-                            sysVect.Add(4);
-                            sysVect.Add(1);
-                            sysVect.Add(0);
-                            byte by = (byte)(vol);
-                            sysVect.Add(by);
-                            sysVect.Add(247); // Hex F7
-                            sysD.Add(sysVect);
-                            //strData.Add()
-                            lst[track].Insert(1, vtt);
-                            break;
-                        case 3:
-                            //Key Signature
-                            string key = "C ";
-                            string mode = "Major";
-                            key = comboBoxKey.Text;
-                            mode = comboBoxMode.Text;
-                            vect.Add(255);
-                            vect.Add(89);
-                            vect.Add(strData.Count);
-                            lst[track].Insert(eNb, vect);
-                            str = "Key Signature: " + key + mode;
-                            strData.Add(str);
-                            break;
-                        case 4:
-                            vect.Add(176 + channel);
-                            vect.Add(7);
-                            str = textBoxD1.Text;
-                            result = Int32.TryParse(str, out number);
-                            if (result)
-                            {
-                                vect.Add(number);
-                            }
-                            lst[track].Insert(eNb, vect);
-                            break;
-                        default:
-                            break;
-                    }
+                    insert(evT, vect, channel, track, str, eNb);
                     break;
                 case 1:
                     //Delete
@@ -226,127 +142,23 @@ namespace Midi_List_Editor_1._1
                     break;
                 case 2:
                     //Replace
-                    int note1 = 0;
-                    int note2 = 0;
-                    int lg = lst[track].Count;
-                    str = textBoxD1.Text;
-                    result = Int32.TryParse(str, out number);
-                    if (result)
-                    {
-                           note1 = number;
-                    }
-                    str = textBoxD2.Text;
-                    result = Int32.TryParse(str, out number);
-                    if (result)
-                    {
-                           note2 = number;
-                    }
-                    int iloop = 0;
-                    while (iloop < lg)
-                    {
-                        if (lst[track][iloop][2] == note1)
-                            lst[track][iloop][2] = note2;
-                        iloop++;
-                    }
-
+                    replace(track, str);
                     break;
                 case 3:
                     // Split Track
-                    {
-                        List<List<int>> lst2 = new List<List<int>>();
-                        List<List<int>> lstN = new List<List<int>>();
-                        List<int> lstvect = new List<int>();
-                        int[] arr1 = new int[5];
-                        int nmb = lst[track].Count; //Number of events in track to be splitted
-                        int nbTr = lst.Count;
-                        int x;
-                        int flag;
-                        int chan;
-                        int i = 0;
-                        while (i < nmb)
-                        {
-                            lst2.Add(lst[track][i]);
-                            x=lst2[i][1];
-                            chan = 0;
-                            if (x<240)
-                                chan = x % 16 + 1;
-                            lst2[i].Add(chan);
-                            if (vect.Contains(chan))
-                                flag = 0;
-                            else
-                            {
-                                //MessageBox.Show(chan.ToString() + "  " + lst2[i][0].ToString());
-                                if (chan < 16)
-                                    vect.Add(chan);
-                                //else
-                                //    vect.Add(0);
-                            }
-                            i++;
-                        }
-                        lst.Remove(lst[track]);
-                        int nbNtr = vect.Count; //Number of channels in the track to be spilitted.
-                        if (nbNtr > 1)
-                        {
-                            fileData[4] = "Midi Type: 1 \n";
-                            fileData[5] = "Number of Tracks: " + Convert.ToString(nbTr + nbNtr - 1) + "\n";
-                            //Program.form.fileData[4] = "Text";
-                        }
-                        int j = 0;
-                        int k;
-                        int lstCnt;
-                        int chN; //channel number
-                        while (j < nbNtr)
-                        {
-                            lstN.Clear();
-                            chN = vect[j];
-                            i = 0;
-                            while (i < nmb)
-                            {
-                                if (lst2[i][4] == chN)
-                                {
-                                    //lstvect.Clear();
-                                    k = 0;
-                                    while (k < 4)
-                                    {
-                                        //lstvect.Add(lst2[i][k]);
-                                        arr1[k] = lst2[i][k];
-                                        k++;
-                                    }
-                                    //List<int> lstSL = lstvect.ToList();
-                                    //lstN.Add(lstSL);
-                                    ml.toTwo(arr1, lstN);
-                                }
-                                i++;
-                            }
-                            // insert EOF here
-                            arr1[1] = 255;
-                            arr1[2] = 47;
-                            x = strData.Count;
-                            arr1[3] = x;
-                            ml.toTwo(arr1, lstN);
-                            strData.Add("End of Track");
-                            //lstCnt = lst.Count;
-                            //List<List<int>> listNN = lstN.ToList();
-                            //lst.Insert(track, lstN);
-                            ml.toThree(lstN, lst);
-                            j++;
-                        }
-                        nbNtr = lst.Count;
-                        break;
-                    }
+                    split_track(track, vect);
+                    break;
                 case 4:
                     //Event editing
-                    {
-                        Form3 myForm;
-                        myForm = new Form3(lst, strData, track, eNb);
-                        myForm.Show();
-                        break;
-                    }
+                    Form3 myForm;
+                    myForm = new Form3(lst, strData, track, eNb);
+                    myForm.Show();
+                    break;
                 case 5:
                     //Change Track order
                     {
-                        Form4 myForm;
-                        myForm = new Form4(lst, strData);
+                        Form4 myForm4;
+                        myForm4 = new Form4(lst, strData);
                         int n = lst.Count;
                         myForm.Height = 100 + n * 20;
                         myForm.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -355,172 +167,22 @@ namespace Midi_List_Editor_1._1
                     }
                 case 6:
                     //Change Midi Channel
-                    {
-                        int state;
-                        int x;
-                        int i = 0;
-                        int len = lst[track].Count;
-                        int ch = comboBoxCh.SelectedIndex;
-                        while (i < len)
-                        {
-                            state = lst[track][i][1];
-                            x = state / 16;
-                            if (x != 15)
-                            {
-                                state = x * 16 + ch;
-                                lst[track][i][1] = state;
-                            }
-                            i++;
-                        }
-                        
-                        break;
-                    }
+                    change_midi_channel(track);
+                    break;
                 case 7:
-                    {
-                        //Note identification in drum track
-                        List<int> lstvect = new List<int>();
-                        int nmb = lst[track].Count; //Number of events in track
-                        int i = 0;
-                        int note;
-                        int flag;
-                        while (i < nmb)
-                        {
-                            if (lst[track][i][1] == 153)
-                            {
-                                note=lst[track][i][2];
-                                if (vect.Contains(note))
-                                    flag = 0;
-                                else
-                                    vect.Add(note);
-                            }
-                            i++;
-                        }
-                        nmb = vect.Count();
-                        i = 0;
-                        StringBuilder sb = new StringBuilder();
-                        while (i < nmb)
-                        {
-                            sb.AppendLine(vect[i].ToString() + "\n");
-                            i++;
-                        }
-                        str = sb.ToString();
-                        Form5 myForm;
-                        myForm = new Form5(str);
-                        //myForm.FormBorderStyle = FormBorderStyle.None;
-                        myForm.Show();
-                        myForm.Width = 80;
-                        break;
-                        
-                    }
+                    //Note identification in drum track
+                    drum_note_id(track, vect);
+                    break;
                 case 8:
                     //Brush Kit Correction
-                    {
-                        /*
-                        int i = 0;
-                        int nmb = lst[track].Count;
-                        int note;
-                        while (i < nmb)
-                        {
-                            if (lst[track][i][1] == 153)
-                            {
-                                note = lst[track][i][2];
-                                switch (note)
-                                {
-                                    case 38:
-                                        {
-                                            lst[track][i][2] = 25;
-                                            break;
-                                        }
-                                    case 39:
-                                        {
-                                            lst[track][i][2] = 27;
-                                            break;
-                                        }
-                                }
-
-                            }
-                            i++;
-                            
-                        
-                        }
-                         break;
-                        */
-                        int[] noteCorr = new int[] { 15, 16, 17, 18, 32, 23, 21, 22, 35, 36, 37, 25, 27, 26 };
-                        int i = 0;
-                        int nmb = lst[track].Count;
-                        int note;
-                        while (i < nmb)
-                        {
-                            if (lst[track][i][1] == 153 || lst[track][i][1] == 137)
-                            {
-                                note = lst[track][i][2];
-                                if (note < 41 && note>27)
-                                {
-                                    lst[track][i][2] = noteCorr[note - 27];
-                                }
-                            }
-                            i++;
-                        }
-                    }
+                    brush_kit_corr(track);
                     break;
                 case 9:
                     break;
 
                 case 10:
                     //Time correction of MIDI signals. Track "track" should contain bar starts in channel 10.
-                    List<int> barMarks = new List<int>();
-                    int lbm = lst[track].Count();
-                    for (int i = 0; i < lbm; i++)
-                        if (i%32 == 0)
-                            barMarks.Add(lst[track][i][0]);
-                    int llbm = barMarks.Count();
-                    barMarks.Add(2*barMarks[llbm - 1] - barMarks[llbm - 2]);
-                    llbm++;
-                    str = textBoxD1.Text;
-                    int barTime = 0;
-                    result = Int32.TryParse(str, out number);
-                    if (result)
-                    {
-                        barTime = number;
-                    }
-                    int nTr = lst.Count();
-                    int kk = 0;
-                    int m = 0;
-                    int tr = 1;
-                    int r;
-                    int nb;
-                    int ant;
-                    bool loop;
-                    while (tr < nTr)
-                    {
-                        kk = 0;
-                        m = 0;
-                        ant = lst[tr].Count();
-                        while (kk < llbm-1)
-                        {
-                            loop = true;
-                            nb = barMarks[kk + 1] - barMarks[kk];
-                            while (m<ant && loop == true)
-                            {
-                                r = lst[tr][m][0];
-                                if (r >= barMarks[kk + 1])
-                                {
-                                    loop = false;
-                                    break;
-                                }
-                                else
-                                {
-                                    r = (kk + 1) * barTime + (r - barMarks[kk]) * barTime / nb;
-                                    if (r < 0)
-                                        r = 0;
-                                    lst[tr][m][0] = r;
-                                    m++;
-                                }
-                            }
-                            kk++;
-                        }
-                        tr++;
-                    }
+                    time_corr(track);
                     break;
                 case 11:
                     //Change of ticks/quarter note
@@ -549,6 +211,337 @@ namespace Midi_List_Editor_1._1
         private void textBoxED_TextChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void insert(int evT, List<int> vect, int channel, int track, string str, int eNb)
+        {
+            switch (evT)
+            {
+                case 0:
+                    //Program Change
+                    vect.Add(192 + channel);
+                    str = textBoxD1.Text;
+                    int number;
+                    bool result = Int32.TryParse(str, out number);
+                    if (result)
+                    {
+                        vect.Add(number-1);
+                    }
+
+                    vect.Add(0);
+                    lst[track].Insert(eNb, vect);
+                    str = "";
+                    break;
+                case 1:
+                    //Track Name
+                    labelTrName.Visible = true;
+                    textTrName.Visible = true;
+                    buttonTrN.Visible = true;
+                    break;
+                case 2:
+                    //Master Volume
+                    List<byte> sysVect = new List<byte>();
+                    List<int> vtt = new List<int>();
+                    int sDCnt = sysD.Count;
+                    vtt.Add(0);
+                    vtt.Add(240);
+                    vtt.Add(7);
+                    vtt.Add(sDCnt);
+                    str = textBoxD1.Text;
+                    int vol = 0;
+                    result = Int32.TryParse(str, out number);
+                    if (result) 
+                    {
+                        vol = number; 
+                    }
+                    sysVect.Add(7);
+                    sysVect.Add(127); // Hex 7F
+                    sysVect.Add(127);
+                    sysVect.Add(4);
+                    sysVect.Add(1);
+                    sysVect.Add(0);
+                    byte by = (byte)(vol);
+                    sysVect.Add(by);
+                    sysVect.Add(247); // Hex F7
+                    sysD.Add(sysVect);
+                    //strData.Add()
+                    lst[track].Insert(1, vtt);
+                    break;
+                case 3:
+                    //Key Signature
+                    string key = "C ";
+                    string mode = "Major";
+                    key = comboBoxKey.Text;
+                    mode = comboBoxMode.Text;
+                    vect.Add(255);
+                    vect.Add(89);
+                    vect.Add(strData.Count);
+                    lst[track].Insert(eNb, vect);
+                    str = "Key Signature: " + key + mode;
+                    strData.Add(str);
+                    break;
+                case 4:
+                    //TrackBar Volume
+                    vect.Add(176 + channel);
+                    vect.Add(7);
+                    str = textBoxD1.Text;
+                    result = Int32.TryParse(str, out number);
+                    if (result)
+                    {
+                        vect.Add(number);
+                    }
+                    lst[track].Insert(eNb, vect);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void replace(int track, string str)
+        {
+            int note1 = 0;
+            int note2 = 0;
+            int lg = lst[track].Count;
+            str = textBoxD1.Text;
+            int number;
+            bool result = Int32.TryParse(str, out number);
+            if (result)
+            {
+                note1 = number;
+            }
+            str = textBoxD2.Text;
+            result = Int32.TryParse(str, out number);
+            if (result)
+            {
+                note2 = number;
+            }
+            int iloop = 0;
+            while (iloop < lg)
+            {
+                if (lst[track][iloop][2] == note1)
+                    lst[track][iloop][2] = note2;
+                iloop++;
+            }
+        }
+
+        private void split_track(int track, List<int> vect)
+        {
+            List<List<int>> lst2 = new List<List<int>>();
+            List<List<int>> lstN = new List<List<int>>();
+            List<int> lstvect = new List<int>();
+            int[] arr1 = new int[5];
+            int nmb = lst[track].Count; //Number of events in track to be splitted
+            int nbTr = lst.Count;
+            int x;
+            int flag = 1;
+            int chan;
+            int i = 0;
+            while (i < nmb)
+            {
+                lst2.Add(lst[track][i]);
+                x = lst2[i][1];
+                chan = 0;
+                if (x < 240)
+                    chan = x % 16 + 1;
+                lst2[i].Add(chan);
+                if (vect.Contains(chan))
+                    flag = 0;
+                else
+                {
+                    if (chan < 16)
+                        vect.Add(chan);
+                }
+                i++;
+            }
+            lst.Remove(lst[track]);
+            int nbNtr = vect.Count; //Number of channels in the track to be spilitted.
+            if (nbNtr > 1)
+            {
+                fileData[4] = "Midi Type: 1 \n";
+                fileData[5] = "Number of Tracks: " + Convert.ToString(nbTr + nbNtr - 1) + "\n";
+                //Program.form.fileData[4] = "Text";
+            }
+            int j = 0;
+            int k;
+            int chN; //channel number
+            while (j < nbNtr)
+            {
+                lstN.Clear();
+                chN = vect[j];
+                i = 0;
+                while (i < nmb)
+                {
+                    if (lst2[i][4] == chN)
+                    {
+                        k = 0;
+                        while (k < 4)
+                        {
+                            arr1[k] = lst2[i][k];
+                            k++;
+                        }
+                        ml.toTwo(arr1, lstN);
+                    }
+                    i++;
+                }
+                // insert EOF here
+                arr1[1] = 255;
+                arr1[2] = 47;
+                x = strData.Count;
+                arr1[3] = x;
+                ml.toTwo(arr1, lstN);
+                strData.Add("End of Track");
+                ml.toThree(lstN, lst);
+                j++;
+            }
+            nbNtr = lst.Count;
+        }
+
+        private void change_midi_channel(int track)
+        {
+            int state;
+            int x;
+            int i = 0;
+            int len = lst[track].Count;
+            int ch = comboBoxCh.SelectedIndex;
+            while (i < len)
+            {
+                state = lst[track][i][1];
+                x = state / 16;
+                if (x != 15)
+                {
+                    state = x * 16 + ch;
+                    lst[track][i][1] = state;
+                }
+                i++;
+            }
+        }
+
+        private void drum_note_id(int track, List<int> vect)
+        {
+            List<int> lstvect = new List<int>();
+            int nmb = lst[track].Count; //Number of events in track
+            int i = 0;
+            int note;
+            int flag;
+            while (i < nmb)
+            {
+                if (lst[track][i][1] == 153)
+                {
+                    note = lst[track][i][2];
+                    if (vect.Contains(note))
+                        flag = 0;
+                    else
+                        vect.Add(note);
+                }
+                i++;
+            }
+            nmb = vect.Count();
+            i = 0;
+            StringBuilder sb = new StringBuilder();
+            while (i < nmb)
+            {
+                sb.AppendLine(vect[i].ToString() + "\n");
+                i++;
+            }
+            string str = sb.ToString();
+            Form5 myForm;
+            myForm = new Form5(str);
+            //myForm.FormBorderStyle = FormBorderStyle.None;
+            myForm.Show();
+            myForm.Width = 80;
+        }
+
+        private void brush_kit_corr(int track)
+        {
+            int[] noteCorr = new int[] { 15, 16, 17, 18, 32, 23, 21, 22, 35, 36, 37, 25, 27, 26 };
+            int i = 0;
+            int nmb = lst[track].Count;
+            int note;
+            while (i < nmb)
+            {
+                if (lst[track][i][1] == 153 || lst[track][i][1] == 137)
+                {
+                    note = lst[track][i][2];
+                    if (note < 41 && note > 27)
+                    {
+                        lst[track][i][2] = noteCorr[note - 27];
+                    }
+                }
+                i++;
+            }
+        }
+
+        private void time_corr(int track)
+        {
+            List<int> barMarks = new List<int>();
+            int lbm = lst[track].Count();
+            for (int i = 0; i < lbm; i++)
+                if (i % 32 == 0)
+                    barMarks.Add(lst[track][i][0]);
+            int llbm = barMarks.Count();
+            barMarks.Add(2 * barMarks[llbm - 1] - barMarks[llbm - 2]);
+            llbm++;
+            string str = textBoxD1.Text;
+            int barTime = 0;
+            int number;
+            bool result = Int32.TryParse(str, out number);
+            if (result)
+            {
+                barTime = number;
+            }
+            int nTr = lst.Count();
+            int kk = 0;
+            int m = 0;
+            int tr = 1;
+            int r;
+            int nb;
+            int ant;
+            bool loop;
+            while (tr < nTr)
+            {
+                kk = 0;
+                m = 0;
+                ant = lst[tr].Count();
+                while (kk < llbm - 1)
+                {
+                    loop = true;
+                    nb = barMarks[kk + 1] - barMarks[kk];
+                    while (m < ant && loop == true)
+                    {
+                        r = lst[tr][m][0];
+                        if (r >= barMarks[kk + 1])
+                        {
+                            loop = false;
+                            break;
+                        }
+                        else
+                        {
+                            r = (kk + 1) * barTime + (r - barMarks[kk]) * barTime / nb;
+                            if (r < 0)
+                                r = 0;
+                            lst[tr][m][0] = r;
+                            m++;
+                        }
+                    }
+                    kk++;
+                }
+                tr++;
+            }
+        }
+
+        private void swirl_extension(int track, string str)
+        {
+            //Increase brush swirl length
+            //To do: check if channel == 10!!!
+            str = textBoxD1.Text;
+            int swl;
+            int number;
+            bool result1 = Int32.TryParse(str, out number);
+            if (result1)
+            {
+                swl = number;
+            }
+            int tlg = lst[track].Count;
         }
 
         private void buttonTrN_Click(object sender, EventArgs e)
